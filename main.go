@@ -10,34 +10,18 @@ import (
 	"strings"
 )
 
-func validity(cert *x509.Certificate) {
-	fmt.Println("Validity")
-	fmt.Println("  Not before:", cert.NotBefore)
-	fmt.Println("  Not after:", cert.NotAfter)
-}
+var DefaultPadding int = 20
 
-func issuer(cert *x509.Certificate) {
-	fmt.Println("Issuer:", cert.Issuer)
-}
-
-func serialNumber(cert *x509.Certificate) {
-	serial := hex.EncodeToString(cert.SerialNumber.Bytes())
-	fmt.Println("Serial Number:", serial)
-}
-
-func x509KeyIds(cert *x509.Certificate) {
-	skid := hex.EncodeToString(cert.SubjectKeyId)
-	akid := hex.EncodeToString(cert.AuthorityKeyId)
-	fmt.Println("Subject Key Id:", skid)
-	fmt.Println("Authority Key Id:", akid)
+func paddedPrint(key, value string, padding int) {
+	fmt.Printf("%*s: %s\n", padding, key, value)
 }
 
 func subject(cert *x509.Certificate) {
-	fmt.Println("Subject:", cert.Subject)
+	paddedPrint("Subject", cert.Subject.String(), DefaultPadding)
 }
 
 func san(cert *x509.Certificate) {
-	fmt.Println("SANs")
+	fmt.Printf("\nSANs\n")
 	sans := strings.Join(cert.DNSNames, "\n  ")
 	fmt.Println(" ", sans)
 }
@@ -59,7 +43,28 @@ func NewConfig() *Config {
 }
 
 func (c *Config) DialString() string {
-	return c.Hostname+":"+c.Port
+	return c.Hostname + ":" + c.Port
+}
+
+func certificate(cert *x509.Certificate) {
+	fmt.Printf("\nCertificate\n")
+	subject(cert)
+	paddedPrint("Valid after", cert.NotBefore.String(), DefaultPadding)
+	paddedPrint("Valid before", cert.NotAfter.String(), DefaultPadding)
+
+	serial := hex.EncodeToString(cert.SerialNumber.Bytes())
+	paddedPrint("Serial number", serial, DefaultPadding)
+
+	skid := hex.EncodeToString(cert.SubjectKeyId)
+	paddedPrint("Subject Key ID", skid, DefaultPadding)
+	paddedPrint("Public key algorithm", cert.PublicKeyAlgorithm.String(), DefaultPadding)
+}
+
+func issuer(cert *x509.Certificate) {
+	akid := hex.EncodeToString(cert.AuthorityKeyId)
+	fmt.Printf("\nIssuer\n")
+	paddedPrint("Subject", cert.Issuer.String(), DefaultPadding)
+	paddedPrint("Authority Key ID", akid, DefaultPadding)
 }
 
 func main() {
@@ -76,11 +81,8 @@ func main() {
 		panic("Hostname doesn't match with certificate: " + err.Error())
 	}
 
-	certificate := conn.ConnectionState().PeerCertificates[0]
-	subject(certificate)
-	issuer(certificate)
-	serialNumber(certificate)
-	x509KeyIds(certificate)
-	validity(certificate)
-	san(certificate)
+	cert := conn.ConnectionState().PeerCertificates[0]
+	issuer(cert)
+	certificate(cert)
+	san(cert)
 }
