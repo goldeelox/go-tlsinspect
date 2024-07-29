@@ -61,10 +61,19 @@ func certificate(cert *x509.Certificate) {
 }
 
 func issuer(cert *x509.Certificate) {
-	akid := hex.EncodeToString(cert.AuthorityKeyId)
 	fmt.Printf("\nIssuer\n")
 	paddedPrint("Subject", cert.Issuer.String(), DefaultPadding)
+
+	akid := hex.EncodeToString(cert.AuthorityKeyId)
 	paddedPrint("Authority Key ID", akid, DefaultPadding)
+}
+
+func connection(conn *tls.Conn) {
+	fmt.Printf("\nConnection\n")
+	cipherSuite := tls.CipherSuiteName(conn.ConnectionState().CipherSuite)
+	tlsVersion := tls.VersionName(uint16(conn.ConnectionState().Version))
+	paddedPrint("TLS version", tlsVersion, DefaultPadding)
+	paddedPrint("Cipher suite", cipherSuite, DefaultPadding)
 }
 
 func main() {
@@ -80,6 +89,8 @@ func main() {
 	if err != nil {
 		panic("Hostname doesn't match with certificate: " + err.Error())
 	}
+
+	connection(conn)
 
 	cert := conn.ConnectionState().PeerCertificates[0]
 	issuer(cert)
