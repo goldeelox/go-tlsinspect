@@ -12,20 +12,6 @@ import (
 
 var DefaultPadding int = 20
 
-func paddedPrint(key, value string, padding int) {
-	fmt.Printf("%*s: %s\n", padding, key, value)
-}
-
-func subject(cert *x509.Certificate) {
-	paddedPrint("Subject", cert.Subject.String(), DefaultPadding)
-}
-
-func san(cert *x509.Certificate) {
-	fmt.Printf("\nSANs\n")
-	sans := strings.Join(cert.DNSNames, "\n  ")
-	fmt.Println(" ", sans)
-}
-
 type Config struct {
 	Hostname, Port string
 }
@@ -44,6 +30,22 @@ func NewConfig() *Config {
 
 func (c *Config) DialString() string {
 	return c.Hostname + ":" + c.Port
+}
+
+func paddedPrint(key, value string, padding int) {
+	if len(value) > 0 {
+		fmt.Printf("%*s: %s\n", padding, key, value)
+	}
+}
+
+func subject(cert *x509.Certificate) {
+	paddedPrint("Subject", cert.Subject.String(), DefaultPadding)
+}
+
+func san(cert *x509.Certificate) {
+	fmt.Printf("\nSANs\n")
+	sans := strings.Join(cert.DNSNames, "\n  ")
+	fmt.Println(" ", sans)
 }
 
 func certificate(cert *x509.Certificate) {
