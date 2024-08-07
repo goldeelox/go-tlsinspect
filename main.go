@@ -6,6 +6,7 @@ import (
 	"encoding/hex"
 	"flag"
 	"fmt"
+	"log/slog"
 	"os"
 	"strings"
 )
@@ -81,7 +82,11 @@ func connection(conn *tls.Conn) {
 func main() {
 	conf := NewConfig()
 
-	conn, err := tls.Dial("tcp", conf.DialString(), nil)
+	tlsConfig := &tls.Config{
+		InsecureSkipVerify: true,
+	}
+
+	conn, err := tls.Dial("tcp", conf.DialString(), tlsConfig)
 	if err != nil {
 		slog.Warn("server doesn't support SSL certificate",
 			slog.String("msg", err.Error()))
