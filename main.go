@@ -83,13 +83,15 @@ func main() {
 
 	conn, err := tls.Dial("tcp", conf.DialString(), nil)
 	if err != nil {
-		panic("Server doesn't support SSL certificate err: " + err.Error())
+		slog.Warn("server doesn't support SSL certificate",
+			slog.String("msg", err.Error()))
 	}
 	defer conn.Close()
 
 	err = conn.VerifyHostname(conf.Hostname)
 	if err != nil {
-		panic("Hostname doesn't match with certificate: " + err.Error())
+		slog.Warn("hostname doesn't match certificate",
+			slog.String("msg", err.Error()))
 	}
 
 	connection(conn)
